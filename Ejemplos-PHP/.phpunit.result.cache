@@ -1,0 +1,1 @@
+{"version":1,"defects":{"TaxCalculatorTest::testCalculateTax":4},"times":{"CalculatorTest::testAdd":0.114,"TaxCalculatorTest::testCalculateTax":0.31}}

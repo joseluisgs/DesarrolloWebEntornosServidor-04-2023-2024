@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # PHP with Apache service
+  php-app:
+    build: .
+    container_name: php_app
+    ports:
+      - "${APP_PORT}:80"
+    env_file: .env
+    volumes:
+      - ./src:/var/www/html/public # Usar el directorio ficheros de la aplicación web
+      - ./uploads:/var/www/html/public/uploads  # Usar el volumen nombrado
+      - ./:/home/app # Usar el directorio local para el código fuente de la aplicación y proyecto
+    depends_on:
+      - postgres-db
+    # restart: always
+    environment:
+      DATABASE_HOST: postgres-db
+      DATABASE_USER: ${POSTGRES_USER}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE_NAME: ${POSTGRES_DB}
+      APACHE_DOCUMENT_ROOT: /var/www/html/public
+    networks:
+      - tienda-network
+
+  # PostgreSQL service
+  postgres-db:
+    image: postgres:12-alpine
+    container_name: postgres_db
+    env_file: .env
+    # restart: always
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db_data:/var/lib/postgresql/data # Usar el volumen nombrado para persistencia de datos de BD
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - tienda-network
+
+  # Adminer service
+  adminer:
+    image: adminer
+    container_name: adminer
+    # restart: always
+    env_file: .env
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres-db
+    networks:
+      - tienda-network
+
+volumes:
+  db_data:
+  uploads:
+
+networks:
+  tienda-network:
+    driver: bridge
